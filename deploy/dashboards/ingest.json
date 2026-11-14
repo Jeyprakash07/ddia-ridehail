@@ -328,8 +328,8 @@
   {
    "id": 7,
    "type": "timeseries",
-   "title": "CPU by pod (cores)",
-   "description": "Ingest vs Postgres vs simulator: who runs out of CPU first?",
+   "title": "CPU by container (cores, limit 2 each)",
+   "description": "Ingest vs Postgres vs simulator: who runs out of CPU first? The self-reported line comes from the ingest process itself and is the cross-check for the cAdvisor one.",
    "gridPos": {
     "x": 0,
     "y": 24,
@@ -362,8 +362,17 @@
    "targets": [
     {
      "refId": "A",
-     "expr": "sum by (pod)(rate(container_cpu_usage_seconds_total{namespace=\"ridehail\",container!=\"\"}[30s]))",
-     "legendFormat": "{{pod}}",
+     "expr": "sum by (container)(rate(container_cpu_usage_seconds_total{namespace=\"ridehail\",container!=\"\"}[30s]))",
+     "legendFormat": "{{container}}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "prometheus"
+     }
+    },
+    {
+     "refId": "B",
+     "expr": "sum(rate(process_cpu_seconds_total{job=\"ingest\"}[30s]))",
+     "legendFormat": "ingest (self-reported)",
      "datasource": {
       "type": "prometheus",
       "uid": "prometheus"
@@ -374,8 +383,8 @@
   {
    "id": 8,
    "type": "timeseries",
-   "title": "Memory and goroutines",
-   "description": "",
+   "title": "CPU throttling",
+   "description": "Share of 100 ms scheduling periods in which the container hit its CPU limit. Near 100% means it wants more CPU than it is allowed.",
    "gridPos": {
     "x": 12,
     "y": 24,
@@ -388,7 +397,8 @@
    },
    "fieldConfig": {
     "defaults": {
-     "unit": "bytes",
+     "unit": "percentunit",
+     "max": 1,
      "custom": {
       "fillOpacity": 8,
       "lineWidth": 1
@@ -408,8 +418,8 @@
    "targets": [
     {
      "refId": "A",
-     "expr": "sum by (pod)(container_memory_working_set_bytes{namespace=\"ridehail\",container!=\"\"})",
-     "legendFormat": "{{pod}} mem",
+     "expr": "sum by (container)(rate(container_cpu_cfs_throttled_periods_total{namespace=\"ridehail\",container!=\"\"}[30s])) / sum by (container)(rate(container_cpu_cfs_periods_total{namespace=\"ridehail\",container!=\"\"}[30s]))",
+     "legendFormat": "{{container}}",
      "datasource": {
       "type": "prometheus",
       "uid": "prometheus"

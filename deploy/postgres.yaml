@@ -1,5 +1,5 @@
 # One PostgreSQL instance with stock settings: the stage 0 database.
-# The password lives in the "postgres" Secret, which scripts/deploy.ps1 creates.
+# The password lives in the "postgres" Secret, which scripts/deploy.sh creates.
 apiVersion: v1
 kind: Service
 metadata:

@@ -50,37 +50,81 @@ components are swapped in per stage instead of all running at once.
 |---|---|
 | `cmd/ingest` | HTTP service: accepts pings, answers nearby-driver queries, exposes `/metrics` |
 | `cmd/simulator` | Load generator: a fleet of virtual drivers |
-| `internal/store` | Storage interface and the in-memory baseline |
+| `internal/store` | Storage interface: in-memory baseline and Postgres, sharing one contract test |
 | `internal/sim` | Fleet placement and movement |
 | `internal/loadgen` | Latency recording (exercise 1 lives here) |
 | `internal/geo`, `internal/model` | Distance maths and shared types |
+| `deploy` | Kubernetes manifests, kube-prometheus-stack values, Grafana dashboard |
+| `scripts` | WSL setup and the cluster scripts below |
 
-## Run it locally (stage 0, before the cluster exists)
+Everything runs inside Ubuntu 24.04 on WSL2. Run the commands below from an Ubuntu shell in
+the repo root.
+
+## One-time setup
+
+```bash
+bash scripts/wsl-setup.sh
+```
+
+This installs Docker Engine, kubectl, kind, helm and Go. Then give WSL its share of the
+laptop in `C:\Users\<you>\.wslconfig` and restart it with `wsl --shutdown`:
+
+```ini
+[wsl2]
+memory=10GB
+processors=10
+vmIdleTimeout=-1
+```
+
+WSL stops Ubuntu, and with it the cluster, a few minutes after the last WSL process exits.
+Keep an Ubuntu shell open while you work. The cluster survives a restart; it just takes a
+minute to come back.
+
+## Run it locally
 
 Start the service:
 
-```powershell
+```bash
 go run ./cmd/ingest -addr 127.0.0.1:8080 -debug-endpoints
 ```
 
-In a second terminal, run 20 seconds of load and freeze the server for 2 seconds partway through:
+In a second shell, run 20 seconds of load and freeze the server for 2 seconds partway through:
 
-```powershell
+```bash
 go run ./cmd/simulator -drivers 400 -duration 20s -stall-at 8s -stall-for 2s
 ```
 
-`-drivers 400` means 100 pings per second. On this laptop, HTTP over loopback between two
-Windows processes costs about 17 ms per request and tops out at a few hundred requests per
-second. The cause is not confirmed (Avast's real-time scanning is the suspect). Local runs
-are for checking behaviour; throughput is measured inside the cluster.
+`-drivers 400` means 100 pings per second. Local runs are for checking behaviour;
+throughput is measured inside the cluster, where each component has a fixed CPU limit.
 
 Run the tests:
 
-```powershell
+```bash
 go test ./...
 ```
 
-`TestPercentile` fails until exercise 1a is done. Everything else should pass.
+`TestPercentile` fails until exercise 1a is done. Everything else should pass. The Postgres
+store tests skip unless `TEST_DATABASE_URL` points at a database they may empty.
+
+## Run it on the cluster
+
+```bash
+scripts/cluster-up.sh    # kind cluster "ridehail" plus Prometheus and Grafana
+scripts/deploy.sh        # build, load the image, apply manifests and the dashboard
+scripts/load.sh          # 10,000 drivers for 60 s, run as a Job inside the cluster
+```
+
+`load.sh` takes `DRIVERS`, `PING_INTERVAL`, `DURATION`, `WORKERS`, `STALL_AT` and `STALL_FOR`
+as environment variables, e.g. `DRIVERS=20000 DURATION=2m scripts/load.sh`. Run `deploy.sh`
+again after any code change.
+
+Grafana, with the "Ridehail ingest" dashboard:
+
+```bash
+kubectl -n monitoring port-forward svc/monitoring-grafana 3000:80
+```
+
+then open http://localhost:3000.
 
 ## Exercise 1: make the load generator tell the truth
 
