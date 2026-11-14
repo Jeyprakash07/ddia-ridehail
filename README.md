@@ -62,11 +62,8 @@ the repo root.
 
 ## One-time setup
 
-```bash
-bash scripts/wsl-setup.sh
-```
-
-This installs Docker Engine, kubectl, kind, helm and Go. Then give WSL its share of the
+Install Docker Engine, kubectl, kind v0.30, helm 3 and Go 1.24 inside Ubuntu, with your user
+in the `docker` group and systemd enabled in `/etc/wsl.conf`. Then give WSL its share of the
 laptop in `C:\Users\<you>\.wslconfig` and restart it with `wsl --shutdown`:
 
 ```ini
