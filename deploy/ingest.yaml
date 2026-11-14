@@ -1,0 +1,79 @@
+# The ingest service. scripts/deploy.ps1 swaps "ridehail:dev" for the tag it just built.
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingest
+  namespace: ridehail
+  labels:
+    app: ingest
+spec:
+  selector:
+    app: ingest
+  ports:
+    - name: http
+      port: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ingest
+  namespace: ridehail
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ingest
+  template:
+    metadata:
+      labels:
+        app: ingest
+    spec:
+      containers:
+        - name: ingest
+          image: ridehail:dev
+          imagePullPolicy: IfNotPresent
+          command: ["/usr/local/bin/ingest"]
+          # -debug-endpoints is on because this cluster is a local lab.
+          args: ["-store=postgres", "-debug-endpoints"]
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: password
+            - name: DATABASE_URL
+              value: postgres://ridehail:$(PGPASSWORD)@postgres:5432/ridehail?sslmode=disable
+            # Go 1.24 sizes its scheduler from the node's cores, not the
+            # container's CPU limit. Tell it the limit so it is not throttled.
+            - name: GOMAXPROCS
+              valueFrom:
+                resourceFieldRef:
+                  resource: limits.cpu
+          ports:
+            - name: http
+              containerPort: 8080
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 2
+          resources:
+            requests:
+              cpu: 500m
+              memory: 128Mi
+            limits:
+              cpu: "2"
+              memory: 256Mi
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ingest
+  namespace: ridehail
+spec:
+  selector:
+    matchLabels:
+      app: ingest
+  endpoints:
+    - port: http
+      interval: 5s

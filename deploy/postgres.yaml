@@ -1,0 +1,112 @@
+# One PostgreSQL instance with stock settings: the stage 0 database.
+# The password lives in the "postgres" Secret, which scripts/deploy.ps1 creates.
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: ridehail
+  labels:
+    app: postgres
+spec:
+  clusterIP: None
+  selector:
+    app: postgres
+  ports:
+    - name: postgres
+      port: 5432
+    - name: metrics
+      port: 9187
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: postgres
+  namespace: ridehail
+spec:
+  serviceName: postgres
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:17
+          env:
+            - name: POSTGRES_DB
+              value: ridehail
+            - name: POSTGRES_USER
+              value: ridehail
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: password
+            # A subdirectory, because the volume root contains lost+found on
+            # some provisioners and initdb refuses a non-empty directory.
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          ports:
+            - name: postgres
+              containerPort: 5432
+          readinessProbe:
+            exec:
+              command: ["pg_isready", "-U", "ridehail", "-d", "ridehail"]
+            periodSeconds: 5
+          # Sized like a small cloud instance so that its limits are reachable.
+          resources:
+            requests:
+              cpu: "1"
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+        - name: exporter
+          image: quay.io/prometheuscommunity/postgres-exporter:v0.17.1
+          env:
+            - name: DATA_SOURCE_URI
+              value: localhost:5432/ridehail?sslmode=disable
+            - name: DATA_SOURCE_USER
+              value: ridehail
+            - name: DATA_SOURCE_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: postgres
+                  key: password
+          ports:
+            - name: metrics
+              containerPort: 9187
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+  volumeClaimTemplates:
+    - metadata:
+        name: data
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 20Gi
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: postgres
+  namespace: ridehail
+spec:
+  selector:
+    matchLabels:
+      app: postgres
+  endpoints:
+    - port: metrics
+      interval: 5s

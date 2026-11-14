@@ -1,0 +1,61 @@
+# Helm values for kube-prometheus-stack, trimmed for a 16 GB laptop.
+
+alertmanager:
+  enabled: false
+
+grafana:
+  # The cluster is only reachable through `kubectl port-forward` on 127.0.0.1,
+  # so skip the login screen instead of keeping a password in this repo.
+  grafana.ini:
+    auth.anonymous:
+      enabled: true
+      org_role: Admin
+    auth:
+      disable_login_form: true
+  sidecar:
+    dashboards:
+      # Load dashboards from labelled ConfigMaps in any namespace.
+      searchNamespace: ALL
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+    limits:
+      memory: 384Mi
+
+prometheus:
+  prometheusSpec:
+    # Load tests last a minute or two. The default 30 s interval would give
+    # each test two or three data points.
+    scrapeInterval: 5s
+    evaluationInterval: 15s
+    retention: 24h
+    retentionSize: 4GB
+    # Pick up monitors and rules from every namespace, not only this release's.
+    serviceMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelectorNilUsesHelmValues: false
+    ruleSelectorNilUsesHelmValues: false
+    resources:
+      requests:
+        cpu: 200m
+        memory: 512Mi
+      limits:
+        memory: 1536Mi
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 8Gi
+
+# minikube does not expose these control-plane components for scraping, so
+# leaving them on only produces permanently-down targets.
+kubeEtcd:
+  enabled: false
+kubeControllerManager:
+  enabled: false
+kubeScheduler:
+  enabled: false
+kubeProxy:
+  enabled: false
