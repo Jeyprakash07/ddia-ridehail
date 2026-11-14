@@ -24,6 +24,12 @@ fi
 kubectl apply -f "$ROOT/deploy/postgres.yaml"
 sed "s|ridehail:dev|$TAG|g" "$ROOT/deploy/ingest.yaml" | kubectl apply -f -
 
+# Grafana's sidecar picks up any ConfigMap labelled grafana_dashboard=1.
+kubectl -n monitoring create configmap ridehail-dashboards \
+  --from-file="$ROOT/deploy/dashboards/ingest.json" --dry-run=client -o yaml |
+  kubectl label --local -f - grafana_dashboard=1 -o yaml |
+  kubectl apply -f -
+
 kubectl -n ridehail rollout status statefulset/postgres --timeout=300s
 kubectl -n ridehail rollout status deployment/ingest --timeout=180s
 
