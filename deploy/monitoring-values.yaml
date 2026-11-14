@@ -49,7 +49,7 @@ prometheus:
             requests:
               storage: 8Gi
 
-# minikube does not expose these control-plane components for scraping, so
+# kind binds these control-plane components to localhost inside the node, so
 # leaving them on only produces permanently-down targets.
 kubeEtcd:
   enabled: false
