@@ -1,16 +1,16 @@
 # Ops tasks
 
-What to build for CI/CD and observability. Sources: G1–G8 and FV#1–5 are the gaps and
-"further value" items in the handoff doc; "checklist" is the senior-backend CI/CD checklist.
-Nothing is deferred: sections 1–3 are worked through in order, and section 4 is picked up
-whenever its trigger comes up while practising.
+What to build for CI/CD and observability. Tags such as G1–G8 and FV#1–5 label the ops gaps and "further value" items from the
+planning notes, which live outside this repo; every task line stands on its own. Timing
+lives in the study plan, also outside the repo. Section 4 is picked up whenever its
+trigger comes up while practising.
 
 ## 1. Dev: owned by the service team
 
 - [ ] Health checks: decide what the startup, liveness and readiness probes each check (G1)
 - [ ] Graceful shutdown order: fail readiness, wait, then shut down (G1)
-- [ ] Process-pause experiment: stall ingest under a tight liveness probe and see whether Kubernetes kills a pod that's only paused (G1, DDIA ch. 8)
-- [ ] Requests and limits from load-test data; confirm `GOMAXPROCS` (G2)
+- [ ] Process-pause experiment: stall ingest under a tight liveness probe and see whether Kubernetes kills a pod that's only paused (G1, DDIA 2nd ed. ch. 9)
+- [ ] Requests and limits from load-test data; fix the `GOMAXPROCS` setting: Go 1.25+ already follows the container CPU limit, so drop the env var and log `runtime.GOMAXPROCS(0)` to prove it (G2)
 - [ ] Autoscaler settings: min/max replicas and CPU target (G2)
 - [ ] Autoscaling measurements: time to scale up, p99 during that gap, CPU throttling, and the bottleneck moving to Postgres (G2)
 - [ ] Rollout settings in `deploy/ingest.yaml`: `maxSurge`, `maxUnavailable`, `minReadySeconds`, `revisionHistoryLimit` (G3)
@@ -122,7 +122,7 @@ Practised in: the Distributed Cache and Rate Limiter HLD mocks (week 1) and the 
 - [ ] Sharding: choosing a shard key, chunks and the balancer
 - [ ] Multi-document transactions, and when you'd choose MongoDB over Postgres
 
-Practised in: concepts only. DDIA ch. 2 (document vs relational) and ch. 6 (partitioning) through ridehail's stages; no hands-on MongoDB.
+Practised in: your day job, plus DDIA 2nd ed. ch. 3 (document vs relational) and ch. 7 (sharding) through ridehail's stages. Ridehail itself has no MongoDB.
 
 ### Postgres
 - [ ] MVCC, vacuum and table bloat
@@ -136,4 +136,4 @@ Practised in: ridehail Stages 1, 3 and 5, the Postgres tuning task (section 4), 
 
 ## Open decisions
 
-- [ ] Where ops work lands: Jenkins deploys every commit on `main`, so either keep ops changes on an `ops` branch until each passes its "done when", or accept that `main` is live
+- [x] Where ops work lands: Jenkins deploys every commit on `main`, so either keep ops changes on an `ops` branch until each passes its "done when", or accept that `main` is live
