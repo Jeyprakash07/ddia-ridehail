@@ -6,25 +6,37 @@ Nothing is deferred: every open item below is in scope.
 
 ## 1. Dev: owned by the service team
 
-- [ ] Health checks: decide what readiness and liveness each check (G1)
+- [ ] Health checks: decide what the startup, liveness and readiness probes each check (G1)
 - [ ] Graceful shutdown order: fail readiness, wait, then shut down (G1)
+- [ ] Process-pause experiment: stall ingest under a tight liveness probe and see whether Kubernetes kills a pod that's only paused (G1, DDIA ch. 8)
 - [ ] Requests and limits from load-test data; confirm `GOMAXPROCS` (G2)
 - [ ] Autoscaler settings: min/max replicas and CPU target (G2)
-- [ ] Rollout settings in `deploy/ingest.yaml`: `maxSurge`, `maxUnavailable` (G3)
+- [ ] Autoscaling measurements: time to scale up, p99 during that gap, CPU throttling, and the bottleneck moving to Postgres (G2)
+- [ ] Rollout settings in `deploy/ingest.yaml`: `maxSurge`, `maxUnavailable`, `minReadySeconds`, `revisionHistoryLimit` (G3)
 - [ ] Rollback rule: which metric, what threshold, how long to watch (G3)
+- [ ] Canary stage in Jenkins: one `ingest-canary` replica, compare its error rate and p99, then promote or delete (G3)
+- [ ] Blue-green design: two Deployments switched by the Service selector, and when to choose it over canary (G3)
 - [ ] Write the expand-then-contract rule for schema changes (G3)
 - [ ] SLI and SLO definition, plus a burn-rate alert rule (G4)
+- [ ] Error-budget and burn-rate panels in Grafana (G4)
+- [ ] Decide where the SLI is measured: server histogram or client-side timing (G4, exercise 1b)
+- [ ] Instrumentation review: RED metrics (rate, errors, duration) per route, and labels that keep cardinality safe
 - [ ] Pool sizing (FV#3)
 - [ ] Capacity numbers per pod and per Postgres (FV#4)
 - [ ] Profiling under load (FV#5)
 - [ ] Results log: before/after numbers for every experiment (FV#1)
-- [ ] Trace instrumentation and span placement in code (G5)
+- [ ] Trace instrumentation and span placement in code: `otelhttp` in ingest and the simulator so trace context travels, and a pgx query tracer (G5)
+- [ ] Trace sampling: keep a fixed share up front, plus slow and failed requests (G5)
+- [ ] Tracing cost: pprof at 100% vs 1% sampling; exemplars from latency panels to traces (G5)
+- [ ] Datadog mapping: agent, APM, monitors and dashboards against this stack, and the cost trade-off (G6)
 - [ ] Structured log fields and what to log (G8)
 - [ ] Load shedding, retries, idempotency (FV#2)
 - [ ] Security in the service: API authentication, TLS on ingest, per-client rate limits
 - [ ] Recovery targets for ridehail data (how much data may be lost, how fast it must be back) and a restore drill that meets them
 - [ ] Incident practice: one game day per failure type in section 3 (needs G1, G3, G4)
 - [ ] Reading dashboards and debugging on call (ongoing)
+- [ ] "Explain what's there" sessions: Docker, CI/CD, Kubernetes and Prometheus in this repo, one piece per session
+- [ ] Resume stories: a short story for each finished gap, for deep-dive questions
 - [x] CI stages, test strategy, integration tests against real Postgres (checklist)
 - [x] Dockerfile quality, images tagged by commit (checklist)
 - [x] Lint, triaging security findings, merging dependency updates (checklist)
@@ -66,3 +78,7 @@ One game day per failure type. Log time-to-detect and time-to-mitigate for each.
 - [ ] Bad migration or corrupted data: restore from backup. The restore drill
 - [ ] Replication lag or failover: route reads, promote a replica. Stage 3
 - [ ] Expired certificate or token: rotate it, alert before expiry. Let the TLS certificate expire
+
+## Open decisions
+
+- [ ] Where ops work lands: Jenkins deploys every commit on `main`, so either keep ops changes on an `ops` branch until each passes its "done when", or accept that `main` is live
