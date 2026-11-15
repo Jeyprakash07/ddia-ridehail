@@ -31,19 +31,19 @@ Code marked `EXERCISE` is yours. Everything else is scaffolding.
 
 Later rows will shift as real bottlenecks show up.
 
-| Stage | Chapter | We build | What breaks | Your piece |
+| Stage | Chapter (2nd ed.) | We build | What breaks | Your piece |
 |---|---|---|---|---|
-| 0 | 1 · Reliability, scalability | Cluster, Prometheus and Grafana, simulator, ingest on one Postgres | The load generator misreports latency | Percentiles; measuring from the scheduled send time |
-| 1 | 2–3 · Data models, storage engines | Ping history and latest-position tables, geo queries | B-tree write amplification, index bloat, full-scan `nearby` | A small LSM store; a geohash index |
-| 2 | 4 · Encoding and evolution | JSON to Protobuf, rolling upgrades | CPU burned on JSON; old and new versions running together | A schema change that is compatible both ways |
-| 3 | 5 · Replication | Postgres primary with replicas, read splitting | Replication lag, stale reads, lost writes on failover | Read-your-writes routing |
-| 4 | 6 · Partitioning | Sharded location store | The airport becomes a hot partition; rebalancing | The partitioner and request router |
-| 5 | 7 · Transactions | Trip matching, payments | Two riders get the same driver (write skew); double charges | A correct matching transaction; idempotency keys |
-| 6 | 8 · Trouble with distributed systems | Fault injection: partitions, pauses, clock skew | Zombie leaders, misleading timeouts | Fencing tokens |
-| 7 | 9 · Consistency and consensus | Leader election and leases on etcd | Split brain | A lease-based lock |
-| 8 | 11 · Stream processing | Redpanda log, change data capture, surge pricing | Duplicate and out-of-order events | An idempotent consumer; windowed surge pricing |
-| 9 | 10 · Batch processing | Event lake on MinIO, columnar analytics | Row-store scans that never finish | A batch job for driver earnings |
-| 10 | 12 · The future of data systems | Derived data end to end | Systems drifting out of agreement | A reconciliation audit |
+| 0 | 2 · Reliability, scalability | Cluster, Prometheus and Grafana, simulator, ingest on one Postgres | The load generator misreports latency | Percentiles; measuring from the scheduled send time |
+| 1 | 3–4 · Data models, storage engines | Ping history and latest-position tables, geo queries | B-tree write amplification, index bloat, full-scan `nearby` | A small LSM store; a geohash index |
+| 2 | 5 · Encoding and evolution | JSON to Protobuf, rolling upgrades | CPU burned on JSON; old and new versions running together | A schema change that is compatible both ways |
+| 3 | 6 · Replication | Postgres primary with replicas, read splitting | Replication lag, stale reads, lost writes on failover | Read-your-writes routing |
+| 4 | 7 · Sharding | Sharded location store | The airport becomes a hot partition; rebalancing | The partitioner and request router |
+| 5 | 8 · Transactions | Trip matching, payments | Two riders get the same driver (write skew); double charges | A correct matching transaction; idempotency keys |
+| 6 | 9 · Trouble with distributed systems | Fault injection: partitions, pauses, clock skew | Zombie leaders, misleading timeouts | Fencing tokens |
+| 7 | 10 · Consistency and consensus | Leader election and leases on etcd | Split brain | A lease-based lock |
+| 8 | 12 · Stream processing | Redpanda log, change data capture, surge pricing | Duplicate and out-of-order events | An idempotent consumer; windowed surge pricing |
+| 9 | 11 · Batch processing | Event lake on MinIO, columnar analytics | Row-store scans that never finish | A batch job for driver earnings |
+| 10 | 13 · A philosophy of streaming systems | Derived data end to end | Systems drifting out of agreement | A reconciliation audit |
 
 Streams come before batch here because the batch stage reads events the log has already captured.
 
@@ -158,7 +158,7 @@ limited to the `ridehail` namespace, and rolls back if the rollout fails.
 
 ## Exercise 1: make the load generator tell the truth
 
-Reading: chapter 1, "Describing Performance", including the sidebar on percentiles in practice.
+Reading: chapter 2, "Describing Performance", including the sidebar on percentiles in practice.
 
 Run the two commands above. The server is frozen for 2 of the 20 seconds, which is 10% of the
 run. The report gives one mean and one max, which is not enough to tell how many pings were
