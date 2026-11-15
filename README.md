@@ -7,6 +7,15 @@ Simulated drivers move around Bengaluru and report their position every few seco
 ask for a car, dispatch picks a nearby driver, pricing reacts to demand, and payments settle
 the trip. Each of those becomes a different data problem once there is enough load.
 
+The project runs two tracks on the same service:
+
+| Track | What it covers | Where it's planned |
+|---|---|---|
+| **DDIA** | Data-intensive systems: storage engines, replication, partitioning, transactions, consensus, streams, batch | The [roadmap](#roadmap) below, one stage per chapter |
+| **Running it in production** | What a senior backend engineer owns once the service is live: health checks and safe deploys, autoscaling, SLOs and alerts, tracing and logs, security, backups and restore, Terraform, incident practice, and deep dives on Kafka, Redis, MongoDB and Postgres | [`TASKS.md`](TASKS.md) |
+
+Both tracks use the same loop: break it under load, measure, fix, measure again.
+
 ## How every stage runs
 
 1. Build the simplest thing that works.
