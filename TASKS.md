@@ -2,7 +2,8 @@
 
 What to build for CI/CD and observability. Sources: G1–G8 and FV#1–5 are the gaps and
 "further value" items in the handoff doc; "checklist" is the senior-backend CI/CD checklist.
-Nothing is deferred: every open item below is in scope.
+Nothing is deferred: sections 1–3 are worked through in order, and section 4 is picked up
+whenever its trigger comes up while practising.
 
 ## 1. Dev: owned by the service team
 
@@ -19,12 +20,8 @@ Nothing is deferred: every open item below is in scope.
 - [ ] Write the expand-then-contract rule for schema changes (G3)
 - [ ] SLI and SLO definition, plus a burn-rate alert rule (G4)
 - [ ] Error-budget and burn-rate panels in Grafana (G4)
-- [ ] Decide where the SLI is measured: server histogram or client-side timing (G4, exercise 1b)
 - [ ] Instrumentation review: RED metrics (rate, errors, duration) per route, and labels that keep cardinality safe
 - [ ] Pool sizing (FV#3)
-- [ ] Capacity numbers per pod and per Postgres (FV#4)
-- [ ] Profiling under load (FV#5)
-- [ ] Results log: before/after numbers for every experiment (FV#1)
 - [ ] Trace instrumentation and span placement in code: `otelhttp` in ingest and the simulator so trace context travels, and a pgx query tracer (G5)
 - [ ] Trace sampling: keep a fixed share up front, plus slow and failed requests (G5)
 - [ ] Tracing cost: pprof at 100% vs 1% sampling; exemplars from latency panels to traces (G5)
@@ -34,9 +31,6 @@ Nothing is deferred: every open item below is in scope.
 - [ ] Security in the service: API authentication, TLS on ingest, per-client rate limits
 - [ ] Recovery targets for ridehail data (how much data may be lost, how fast it must be back) and a restore drill that meets them
 - [ ] Incident practice: one game day per failure type in section 3 (needs G1, G3, G4)
-- [ ] Reading dashboards and debugging on call (ongoing)
-- [ ] "Explain what's there" sessions: Docker, CI/CD, Kubernetes and Prometheus in this repo, one piece per session
-- [ ] Resume stories: a short story for each finished gap, for deep-dive questions
 - [x] CI stages, test strategy, integration tests against real Postgres (checklist)
 - [x] Dockerfile quality, images tagged by commit (checklist)
 - [x] Lint, triaging security findings, merging dependency updates (checklist)
@@ -52,7 +46,6 @@ Nothing is deferred: every open item below is in scope.
 - [ ] Postgres backups: a scheduled dump plus WAL archiving for point-in-time recovery (needed by the restore drill)
 - [ ] TLS certificates for ingest, e.g. cert-manager with a local CA (needed by service security)
 - [ ] Ingress for ingest: an ingress controller in kind, ingest reachable from outside the cluster, TLS ending at the Ingress (needed by service security)
-- [ ] Kustomize base and overlays for `deploy/`, when Stage 3 adds a second variant (needed by Stage 3 replication)
 - [x] kind cluster (needed by everything)
 - [x] Prometheus and Grafana (needed by G3's rollback check, G4 and every measurement)
 - [x] Jenkins and its deploy RBAC (needed by G3's rollback and canary)
@@ -68,7 +61,8 @@ Every game day follows the same response, which is also the shape of an intervie
 5. **Fix:** the real fix, once things are stable.
 6. **Postmortem:** blameless, with action items so it can't happen the same way again.
 
-One game day per failure type. Log time-to-detect and time-to-mitigate for each.
+One game day per failure type. Log time-to-detect and time-to-mitigate for each. The hot
+partition and replication game days are in section 4, because they wait for their stages.
 
 - [ ] Bad deploy: roll back. Ship a build that fails 10% of pings (G3)
 - [ ] Dependency down: fail readiness, degrade gracefully. Kill `postgres-0` under load (G1)
@@ -76,10 +70,25 @@ One game day per failure type. Log time-to-detect and time-to-mitigate for each.
 - [ ] Resource exhaustion (pool, memory, disk): limits, then fix the leak. Shrink the pool, set a low memory limit
 - [ ] Slow dependency: timeouts, find it with a trace. `/debug/stall` (G5)
 - [ ] Retry storm or cascading failure: backoff, retry budgets. FV#2 with retries switched on
-- [ ] Hot partition: split or salt the key. Stage 4 with an airport-heavy fleet
 - [ ] Bad migration or corrupted data: restore from backup. The restore drill
-- [ ] Replication lag or failover: route reads, promote a replica. Stage 3
 - [ ] Expired certificate or token: rotate it, alert before expiry. Let the TLS certificate expire
+
+## 4. As needed while practising
+
+Each task waits for its trigger, then gets done in that session.
+
+- [ ] **Next load test:** check the dashboard's CPU panels show correct ingest figures
+- [ ] **Every load test:** read the dashboards and debug as if on call
+- [ ] **After every experiment:** add its before/after numbers to the results log (FV#1)
+- [ ] **Exercise 1b done:** decide where the SLI is measured, server histogram or client-side timing (G4)
+- [ ] **Stage 0 done:** Postgres tuning (`shared_buffers`, `synchronous_commit`, WAL settings), measured with the same load test
+- [ ] **Stage 0 and Stage 1 load runs:** capacity numbers per pod and per Postgres (FV#4)
+- [ ] **A load test looks CPU-bound:** profile under load (FV#5)
+- [ ] **Stage 3 adds a second variant:** Kustomize base and overlays for `deploy/`
+- [ ] **Stage 3:** game day for replication lag or failover. Route reads, promote a replica
+- [ ] **Stage 4:** game day for a hot partition. Split or salt the key, with an airport-heavy fleet
+- [ ] **Revising a tool:** an "explain what's there" session for Docker, CI/CD, Kubernetes or Prometheus
+- [ ] **Each gap in section 1 finished:** write its resume story
 
 ## Open decisions
 
