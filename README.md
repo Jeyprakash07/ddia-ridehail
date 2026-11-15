@@ -123,6 +123,19 @@ kubectl -n monitoring port-forward svc/monitoring-grafana 3000:80
 
 then open http://localhost:3000.
 
+## CI and CD
+
+GitHub Actions tests every push and, on `main`, publishes `ghcr.io/jeyprakash07/ddia-ridehail:<commit>`.
+A local Jenkins deploys each new commit on `main` once its image exists:
+
+```bash
+scripts/jenkins-up.sh    # Jenkins on http://localhost:8081, after deploy.sh has run once
+```
+
+The first time, finish the setup wizard with the suggested plugins, then create a Pipeline job
+that reads `ci/jenkins/Jenkinsfile` from this repo's `main` branch. Jenkins deploys with a
+service account limited to the `ridehail` namespace, and rolls back if the rollout fails.
+
 ## Exercise 1: make the load generator tell the truth
 
 Reading: chapter 1, "Describing Performance", including the sidebar on percentiles in practice.
