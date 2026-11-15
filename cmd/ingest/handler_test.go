@@ -28,7 +28,7 @@ func postPing(t *testing.T, srv *httptest.Server, body string) *http.Response {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { resp.Body.Close() })
+	t.Cleanup(func() { _ = resp.Body.Close() })
 	return resp
 }
 
@@ -44,7 +44,7 @@ func TestPingThenNearby(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("GET nearby = %d, want 200", resp.StatusCode)
 	}
@@ -91,7 +91,7 @@ func TestNearbyRejectsBadQuery(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
-		resp.Body.Close()
+		_ = resp.Body.Close()
 		if resp.StatusCode != http.StatusBadRequest {
 			t.Errorf("query %q: status = %d, want 400", query, resp.StatusCode)
 		}
@@ -107,7 +107,7 @@ func TestMetricsCountIngestedPings(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		t.Fatal(err)
@@ -126,7 +126,7 @@ func TestStallEndpointOnlyExistsInDebugMode(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	if resp.StatusCode != http.StatusNotFound {
 		t.Errorf("without -debug-endpoints: status = %d, want 404", resp.StatusCode)
 	}
@@ -136,7 +136,7 @@ func TestStallEndpointOnlyExistsInDebugMode(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	if resp.StatusCode != http.StatusNoContent {
 		t.Errorf("with -debug-endpoints: status = %d, want 204", resp.StatusCode)
 	}

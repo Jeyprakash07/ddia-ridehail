@@ -170,7 +170,7 @@ func sendPing(client *http.Client, url string, p model.Ping) error {
 	}
 	// Drain and close so the connection goes back to the pool.
 	_, _ = io.Copy(io.Discard, resp.Body)
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	if resp.StatusCode != http.StatusNoContent {
 		return fmt.Errorf("unexpected status %d", resp.StatusCode)
 	}
@@ -184,7 +184,7 @@ func waitReady(ctx context.Context, client *http.Client, target string) error {
 	for {
 		resp, err := client.Get(target + "/healthz")
 		if err == nil {
-			resp.Body.Close()
+			_ = resp.Body.Close()
 			if resp.StatusCode == http.StatusOK {
 				return nil
 			}
@@ -215,7 +215,7 @@ func injectStall(ctx context.Context, target string, at, length time.Duration) {
 		fmt.Fprintln(os.Stderr, "stall request failed:", err)
 		return
 	}
-	resp.Body.Close()
+	_ = resp.Body.Close()
 	if resp.StatusCode != http.StatusNoContent {
 		fmt.Fprintf(os.Stderr, "stall request returned %d (is ingest running with -debug-endpoints?)\n", resp.StatusCode)
 	}
