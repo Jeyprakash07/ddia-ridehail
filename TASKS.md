@@ -23,7 +23,7 @@ Nothing is deferred: every open item below is in scope.
 - [ ] Load shedding, retries, idempotency (FV#2)
 - [ ] Security in the service: API authentication, TLS on ingest, per-client rate limits
 - [ ] Recovery targets for ridehail data (how much data may be lost, how fast it must be back) and a restore drill that meets them
-- [ ] Incident practice: game days (stall ingest, kill Postgres, ship a bad build), detect from alerts and dashboards, mitigate, write a blameless postmortem (needs G1, G3, G4)
+- [ ] Incident practice: one game day per failure type in section 3 (needs G1, G3, G4)
 - [ ] Reading dashboards and debugging on call (ongoing)
 - [x] CI stages, test strategy, integration tests against real Postgres (checklist)
 - [x] Dockerfile quality, images tagged by commit (checklist)
@@ -42,3 +42,27 @@ Nothing is deferred: every open item below is in scope.
 - [x] kind cluster (needed by everything)
 - [x] Prometheus and Grafana (needed by G3's rollback check, G4 and every measurement)
 - [x] Jenkins and its deploy RBAC (needed by G3's rollback and canary)
+
+## 3. Incident practice
+
+Every game day follows the same response, which is also the shape of an interview answer:
+
+1. **Detect:** which alert or dashboard showed it.
+2. **Assess impact:** who is affected, how badly, and whether it's getting worse.
+3. **Mitigate first:** roll back, fail over, shed load, scale up, or turn off a feature flag.
+4. **Diagnose:** metrics, then traces, then logs.
+5. **Fix:** the real fix, once things are stable.
+6. **Postmortem:** blameless, with action items so it can't happen the same way again.
+
+One game day per failure type. Log time-to-detect and time-to-mitigate for each.
+
+- [ ] Bad deploy: roll back. Ship a build that fails 10% of pings (G3)
+- [ ] Dependency down: fail readiness, degrade gracefully. Kill `postgres-0` under load (G1)
+- [ ] Traffic spike: shed load, autoscale. `DRIVERS=40000` (FV#2, G2)
+- [ ] Resource exhaustion (pool, memory, disk): limits, then fix the leak. Shrink the pool, set a low memory limit
+- [ ] Slow dependency: timeouts, find it with a trace. `/debug/stall` (G5)
+- [ ] Retry storm or cascading failure: backoff, retry budgets. FV#2 with retries switched on
+- [ ] Hot partition: split or salt the key. Stage 4 with an airport-heavy fleet
+- [ ] Bad migration or corrupted data: restore from backup. The restore drill
+- [ ] Replication lag or failover: route reads, promote a replica. Stage 3
+- [ ] Expired certificate or token: rotate it, alert before expiry. Let the TLS certificate expire
