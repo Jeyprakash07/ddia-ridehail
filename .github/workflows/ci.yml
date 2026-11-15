@@ -48,24 +48,17 @@ jobs:
         with:
           version: v2.15.0
 
-  # Scans the image for known vulnerabilities. Needs the SNYK_TOKEN secret;
-  # without it the scan is skipped with a warning instead of failing.
+  # Scans the image with Trivy and fails on fixable HIGH or CRITICAL findings.
   image-scan:
     runs-on: ubuntu-latest
-    env:
-      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
     steps:
-      - if: env.SNYK_TOKEN == ''
-        run: echo "::warning::SNYK_TOKEN is not set, so the image scan was skipped."
-      - if: env.SNYK_TOKEN != ''
-        uses: actions/checkout@v4
-      - if: env.SNYK_TOKEN != ''
-        run: docker build -t ridehail:scan .
-      - if: env.SNYK_TOKEN != ''
-        uses: snyk/actions/docker@master
-        with:
-          image: ridehail:scan
-          args: --file=Dockerfile --severity-threshold=high
+      - uses: actions/checkout@v4
+      - run: docker build -t ridehail:scan .
+      - run: >-
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock
+          aquasec/trivy:0.76.2 image
+          --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1
+          ridehail:scan
 
   # Publishes the image only for commits on main, tagged with the commit SHA.
   image:
