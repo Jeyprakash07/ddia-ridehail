@@ -51,6 +51,8 @@ Nothing is deferred: every open item below is in scope.
 - [ ] Terraform for the local platform: the kind cluster, the monitoring Helm release and namespaces, using the kind, helm and kubernetes providers (replaces `platform/cluster/cluster-up.sh`)
 - [ ] Postgres backups: a scheduled dump plus WAL archiving for point-in-time recovery (needed by the restore drill)
 - [ ] TLS certificates for ingest, e.g. cert-manager with a local CA (needed by service security)
+- [ ] Ingress for ingest: an ingress controller in kind, ingest reachable from outside the cluster, TLS ending at the Ingress (needed by service security)
+- [ ] Kustomize base and overlays for `deploy/`, when Stage 3 adds a second variant (needed by Stage 3 replication)
 - [x] kind cluster (needed by everything)
 - [x] Prometheus and Grafana (needed by G3's rollback check, G4 and every measurement)
 - [x] Jenkins and its deploy RBAC (needed by G3's rollback and canary)
