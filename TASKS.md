@@ -21,6 +21,9 @@ Nothing is deferred: every open item below is in scope.
 - [ ] Trace instrumentation and span placement in code (G5)
 - [ ] Structured log fields and what to log (G8)
 - [ ] Load shedding, retries, idempotency (FV#2)
+- [ ] Security in the service: API authentication, TLS on ingest, per-client rate limits
+- [ ] Recovery targets for ridehail data (how much data may be lost, how fast it must be back) and a restore drill that meets them
+- [ ] Incident practice: game days (stall ingest, kill Postgres, ship a bad build), detect from alerts and dashboards, mitigate, write a blameless postmortem (needs G1, G3, G4)
 - [ ] Reading dashboards and debugging on call (ongoing)
 - [x] CI stages, test strategy, integration tests against real Postgres (checklist)
 - [x] Dockerfile quality, images tagged by commit (checklist)
@@ -33,6 +36,9 @@ Nothing is deferred: every open item below is in scope.
 - [ ] Deploy annotation in Grafana (needed by G3 and reading dashboards)
 - [ ] Tempo (needed by G5)
 - [ ] Loki and a log collector (needed by G8)
+- [ ] Terraform for the local platform: the kind cluster, the monitoring Helm release and namespaces, using the kind, helm and kubernetes providers (replaces `platform/cluster/cluster-up.sh`)
+- [ ] Postgres backups: a scheduled dump plus WAL archiving for point-in-time recovery (needed by the restore drill)
+- [ ] TLS certificates for ingest, e.g. cert-manager with a local CA (needed by service security)
 - [x] kind cluster (needed by everything)
 - [x] Prometheus and Grafana (needed by G3's rollback check, G4 and every measurement)
 - [x] Jenkins and its deploy RBAC (needed by G3's rollback and canary)
