@@ -37,9 +37,32 @@ jobs:
       # TestPercentile fails until exercise 1a is done. Remove the -skip then.
       - run: go test -race -count=1 -skip '^TestPercentile$' ./...
 
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.15.0
+
+  # Scans the image with Trivy and fails on fixable HIGH or CRITICAL findings.
+  image-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker build -t ridehail:scan .
+      - run: >-
+          docker run --rm -v /var/run/docker.sock:/var/run/docker.sock
+          aquasec/trivy:0.76.2 image
+          --severity HIGH,CRITICAL --ignore-unfixed --exit-code 1
+          ridehail:scan
+
   # Publishes the image only for commits on main, tagged with the commit SHA.
   image:
-    needs: test
+    needs: [test, lint, image-scan]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:

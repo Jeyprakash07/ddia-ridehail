@@ -139,7 +139,7 @@ func openTestPostgres(t *testing.T) *Postgres {
 	if err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { pg.Close() })
+	t.Cleanup(func() { _ = pg.Close() })
 	if _, err := pg.pool.Exec(ctx, `TRUNCATE pings, driver_latest`); err != nil {
 		t.Fatal(err)
 	}

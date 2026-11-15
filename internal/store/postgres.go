@@ -117,7 +117,9 @@ func (p *Postgres) migrate(ctx context.Context) error {
 		return err
 	}
 	// Unlock on a fresh context: if ctx has expired we still want to release.
-	defer conn.Exec(context.WithoutCancel(ctx), `SELECT pg_advisory_unlock($1)`, migrationLock)
+	defer func() {
+		_, _ = conn.Exec(context.WithoutCancel(ctx), `SELECT pg_advisory_unlock($1)`, migrationLock)
+	}()
 
 	for _, stmt := range schema {
 		if _, err := conn.Exec(ctx, stmt); err != nil {
@@ -134,7 +136,7 @@ func (p *Postgres) RecordPing(ctx context.Context, ping model.Ping) error {
 	if err != nil {
 		return err
 	}
-	defer tx.Rollback(ctx) // does nothing once Commit has succeeded
+	defer func() { _ = tx.Rollback(ctx) }() // does nothing once Commit has succeeded
 
 	status := int16(ping.Status)
 	if _, err := tx.Exec(ctx, insertPing, ping.DriverID, ping.Lat, ping.Lng, status, time.UnixMilli(ping.TsMs)); err != nil {
