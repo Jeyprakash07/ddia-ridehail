@@ -46,6 +46,16 @@ components are swapped in per stage instead of all running at once.
 
 ## Layout
 
+The repo is split the way a company usually splits ownership across three repos:
+
+| Folder | Would be its own repo | Owned by |
+|---|---|---|
+| repo root | the app repo | the service team |
+| [`deploy/`](deploy/README.md) | the deploy (config) repo | the service team |
+| [`platform/`](platform/README.md) | the platform repo | a platform team |
+
+Inside the app part:
+
 | Path | What it is |
 |---|---|
 | `cmd/ingest` | HTTP service: accepts pings, answers nearby-driver queries, exposes `/metrics` |
@@ -54,8 +64,9 @@ components are swapped in per stage instead of all running at once.
 | `internal/sim` | Fleet placement and movement |
 | `internal/loadgen` | Latency recording (exercise 1 lives here) |
 | `internal/geo`, `internal/model` | Distance maths and shared types |
-| `deploy` | Kubernetes manifests, kube-prometheus-stack values, Grafana dashboard |
-| `scripts` | WSL setup and the cluster scripts below |
+| `Dockerfile`, `.github/workflows` | The service image and its CI |
+| `Jenkinsfile` | CD: how this service is deployed |
+| `scripts` | `deploy.sh` and `load.sh`, the service team's own cluster tools |
 
 Everything runs inside Ubuntu 24.04 on WSL2. Run the commands below from an Ubuntu shell in
 the repo root.
@@ -106,7 +117,7 @@ store tests skip unless `TEST_DATABASE_URL` points at a database they may empty.
 ## Run it on the cluster
 
 ```bash
-scripts/cluster-up.sh    # kind cluster "ridehail" plus Prometheus and Grafana
+platform/cluster/cluster-up.sh   # kind cluster "ridehail" plus Prometheus and Grafana
 scripts/deploy.sh        # build, load the image, apply manifests and the dashboard
 scripts/load.sh          # 10,000 drivers for 60 s, run as a Job inside the cluster
 ```
@@ -129,12 +140,12 @@ GitHub Actions tests every push and, on `main`, publishes `ghcr.io/jeyprakash07/
 A local Jenkins deploys each new commit on `main` once its image exists:
 
 ```bash
-scripts/jenkins-up.sh    # Jenkins on http://localhost:8081, after deploy.sh has run once
+platform/jenkins/jenkins-up.sh   # Jenkins on http://localhost:8081, after deploy.sh has run once
 ```
 
 The first time, finish the setup wizard with the suggested plugins, then create a Pipeline job
-that reads `ci/jenkins/Jenkinsfile` from this repo's `main` branch. Jenkins deploys with a
-service account limited to the `ridehail` namespace, and rolls back if the rollout fails.
+that reads `Jenkinsfile` from this repo's `main` branch. Jenkins deploys with a service account
+limited to the `ridehail` namespace, and rolls back if the rollout fails.
 
 ## Exercise 1: make the load generator tell the truth
 

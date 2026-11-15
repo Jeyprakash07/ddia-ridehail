@@ -3,16 +3,16 @@
 # kind cluster. Safe to run again. Run scripts/deploy.sh once first, so the
 # ridehail namespace and the postgres secret exist.
 #
-#   scripts/jenkins-up.sh
+#   platform/jenkins/jenkins-up.sh
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 CLUSTER="${CLUSTER:-ridehail}"
 STATE="$HOME/.ridehail-jenkins"
 mkdir -p "$STATE"
 
 # A namespace-scoped deploy account instead of the cluster-admin kubeconfig.
-kubectl apply -f "$ROOT/ci/jenkins/rbac.yaml"
+kubectl apply -f "$ROOT/platform/jenkins/rbac.yaml"
 TOKEN="$(kubectl -n ridehail create token jenkins-deployer --duration=8760h)"
 SERVER="https://${CLUSTER}-control-plane:6443"
 CA="$(kind get kubeconfig --internal --name "$CLUSTER" | sed -n 's/^ *certificate-authority-data: //p' | head -1)"
@@ -36,7 +36,7 @@ contexts:
 current-context: jenkins
 EOF
 
-docker build -q -t ridehail-jenkins "$ROOT/ci/jenkins" >/dev/null
+docker build -q -t ridehail-jenkins "$ROOT/platform/jenkins" >/dev/null
 
 if docker container inspect jenkins >/dev/null 2>&1; then
   docker restart jenkins >/dev/null

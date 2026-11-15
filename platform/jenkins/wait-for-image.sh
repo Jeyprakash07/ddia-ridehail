@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Waits until CI has published the image for a commit to GHCR.
 #
-#   ci/jenkins/wait-for-image.sh <git commit sha>
+#   platform/jenkins/wait-for-image.sh <git commit sha>
 set -euo pipefail
 
 SHA="$1"

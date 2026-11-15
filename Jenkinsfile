@@ -19,7 +19,7 @@ pipeline {
   stages {
     stage('Wait for CI image') {
       steps {
-        sh 'bash ci/jenkins/wait-for-image.sh "$GIT_COMMIT"'
+        sh 'bash platform/jenkins/wait-for-image.sh "$GIT_COMMIT"'
       }
     }
 
