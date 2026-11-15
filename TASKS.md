@@ -45,7 +45,8 @@ whenever its trigger comes up while practising.
 - [ ] Terraform for the local platform: the kind cluster, the monitoring Helm release and namespaces, using the kind, helm and kubernetes providers (replaces `platform/cluster/cluster-up.sh`)
 - [ ] Postgres backups: a scheduled dump plus WAL archiving for point-in-time recovery (needed by the restore drill)
 - [ ] TLS certificates for ingest, e.g. cert-manager with a local CA (needed by service security)
-- [ ] Ingress for ingest: an ingress controller in kind, ingest reachable from outside the cluster, TLS ending at the Ingress (needed by service security)
+- [ ] Ingress for ingest: a classic Ingress with an ingress controller (e.g. Traefik) in kind, ingest reachable from outside the cluster, TLS ending at the Ingress (needed by service security)
+- [ ] Gateway for ingest: the Gateway API with Envoy Gateway in kind, routing and TLS at the gateway, a rate limit per client, and weighted traffic splitting for the G3 canary (needed by service security and G3)
 - [x] kind cluster (needed by everything)
 - [x] Prometheus and Grafana (needed by G3's rollback check, G4 and every measurement)
 - [x] Jenkins and its deploy RBAC (needed by G3's rollback and canary)
@@ -89,6 +90,49 @@ Each task waits for its trigger, then gets done in that session.
 - [ ] **Stage 4:** game day for a hot partition. Split or salt the key, with an airport-heavy fleet
 - [ ] **Revising a tool:** an "explain what's there" session for Docker, CI/CD, Kubernetes or Prometheus
 - [ ] **Each gap in section 1 finished:** write its resume story
+
+## 5. Deep dives
+
+What to know about each system for interviews, and where it's practised. Know how it works
+and when to choose it; running it in production is out of scope.
+
+### Kafka
+- [ ] Partitions, ordering within a partition, and choosing the partition key
+- [ ] Consumer groups, offsets and rebalancing; consumer lag
+- [ ] Replication: leaders, in-sync replicas, `acks` and `min.insync.replicas`
+- [ ] Delivery guarantees: idempotent producers, transactions, exactly-once
+- [ ] Retention and log compaction
+
+Practised in: the Kafka HLD mock (Thu 3 Dec) and ridehail's stream-processing stage (Redpanda).
+
+### Redis
+- [ ] Data structures and what each is for: strings, hashes, sorted sets, streams
+- [ ] Caching patterns, TTLs and eviction policies (LRU, LFU)
+- [ ] Single-threaded execution, Lua scripts, and rate limiting with them
+- [ ] Persistence: RDB snapshots vs the append-only file
+- [ ] Replication, Sentinel, and Redis Cluster's hash slots
+- [ ] Locks: why Redlock is debated, and fencing tokens
+
+Practised in: the Distributed Cache and Rate Limiter HLD mocks (week 1) and the LRU Cache LLD round.
+
+### MongoDB
+- [ ] Document model and schema design: embed vs reference
+- [ ] Indexes: compound and multikey
+- [ ] Replica sets, elections, and read and write concerns
+- [ ] Sharding: choosing a shard key, chunks and the balancer
+- [ ] Multi-document transactions, and when you'd choose MongoDB over Postgres
+
+Practised in: concepts only. DDIA ch. 2 (document vs relational) and ch. 6 (partitioning) through ridehail's stages; no hands-on MongoDB.
+
+### Postgres
+- [ ] MVCC, vacuum and table bloat
+- [ ] Isolation levels and locking, including advisory locks
+- [ ] Index types (B-tree, GIN, GiST, BRIN) and reading `EXPLAIN`
+- [ ] WAL, checkpoints and the settings that trade durability for speed
+- [ ] Replication: streaming vs logical
+- [ ] Connection pooling (PgBouncer) and table partitioning
+
+Practised in: ridehail Stages 1, 3 and 5, the Postgres tuning task (section 4), pool sizing, and the DB slots in your plan (Mon 30 Nov, Tue 1 Dec).
 
 ## Open decisions
 
