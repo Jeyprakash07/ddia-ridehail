@@ -43,12 +43,6 @@ spec:
                   key: password
             - name: DATABASE_URL
               value: postgres://ridehail:$(PGPASSWORD)@postgres:5432/ridehail?sslmode=disable
-            # Go 1.24 sizes its scheduler from the node's cores, not the
-            # container's CPU limit. Tell it the limit so it is not throttled.
-            - name: GOMAXPROCS
-              valueFrom:
-                resourceFieldRef:
-                  resource: limits.cpu
           ports:
             - name: http
               containerPort: 8080

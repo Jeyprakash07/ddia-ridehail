@@ -10,7 +10,7 @@ trigger comes up while practising.
 - [ ] Health checks: decide what the startup, liveness and readiness probes each check (G1)
 - [ ] Graceful shutdown order: fail readiness, wait, then shut down (G1)
 - [ ] Process-pause experiment: stall ingest under a tight liveness probe and see whether Kubernetes kills a pod that's only paused (G1, DDIA 2nd ed. ch. 9)
-- [ ] Requests and limits from load-test data; fix the `GOMAXPROCS` setting: Go 1.25+ already follows the container CPU limit, so drop the env var and log `runtime.GOMAXPROCS(0)` to prove it (G2)
+- [ ] Requests and limits from load-test data (G2)
 - [ ] Autoscaler settings: min/max replicas and CPU target (G2)
 - [ ] Autoscaling measurements: time to scale up, p99 during that gap, CPU throttling, and the bottleneck moving to Postgres (G2)
 - [ ] Rollout settings in `deploy/ingest.yaml`: `maxSurge`, `maxUnavailable`, `minReadySeconds`, `revisionHistoryLimit` (G3)

@@ -47,11 +47,6 @@ spec:
             - -workers=$WORKERS
             - -stall-at=$STALL_AT
             - -stall-for=$STALL_FOR
-          env:
-            - name: GOMAXPROCS
-              valueFrom:
-                resourceFieldRef:
-                  resource: limits.cpu
           # Capped so the load generator cannot starve the system under test.
           resources:
             requests:
